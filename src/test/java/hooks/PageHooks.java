@@ -1,24 +1,35 @@
 package hooks;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$x;
 
 public class PageHooks {
+
+    public static void openLink(String link) {
+        Selenide.open(link);
+    }
+
     public static void shouldBeVisible(SelenideElement el) {
         Objects.requireNonNull(el).shouldBe(visible);
     }
 
     public static void shouldNotBeVisible(SelenideElement el) {
         Objects.requireNonNull(el).shouldNotBe(visible);
+    }
+
+    public static void shouldBeAtrr(SelenideElement el, String atr, String value) {
+        Objects.requireNonNull(el).shouldBe(Condition.attribute(atr, value));
+    }
+
+    public static void collectionShouldBeVisibleNotEmpty(ElementsCollection elems) {
+        elems.shouldBe(CollectionCondition.sizeGreaterThan(0));
+        elems.forEach(el->el.shouldBe(visible));
     }
 
     public static void checkElemActive (SelenideElement el) {
@@ -40,7 +51,9 @@ public class PageHooks {
     }
 
     public static void click(SelenideElement el) {
-        Objects.requireNonNull(el).shouldBe(visible).click();
+        SelenideElement elem = Objects.requireNonNull(el);
+        scrollIntoView(elem);
+        elem.shouldBe(visible).click();
     }
 
     public static void send(SelenideElement el, String text) {
@@ -53,6 +66,21 @@ public class PageHooks {
 
     public static String getPageLink() {
         return WebDriverRunner.driver().url();
+    }
+
+    public static String getH1Text() {
+        return getTextNode($x("//h1"));
+    }
+
+    private static String getTextNode(SelenideElement el)
+    {
+        String text = el.getText().trim();
+        List<SelenideElement> children = el.$$x("./*");
+        for (SelenideElement child : children)
+        {
+            text = text.replaceFirst(child.getText(), "").trim();
+        }
+        return text;
     }
 
     public static void scrollIntoView(SelenideElement el) {

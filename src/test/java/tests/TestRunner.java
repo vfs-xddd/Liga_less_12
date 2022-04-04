@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static steps.Steps.*;
 
 
@@ -43,7 +45,7 @@ public class TestRunner extends TestsConfig {
     @Description("Проверка активации кнопки корзины.")
     public void test2() {
         dayProductIsDisplayed();
-        pressDayProductInCartBtn();
+        clickDayProductInCartBtn();
         checkCartHeaderIconIfAdded();
     }
 
@@ -53,9 +55,9 @@ public class TestRunner extends TestsConfig {
     @Description("Переход в корзину.")
     public void test3() {
         dayProductIsDisplayed();
-        pressDayProductInCartBtn();
+        clickDayProductInCartBtn();
         String title = getDayProductTitle();
-        pressCartHeaderIconBtn();
+        clickCartHeaderIconBtn();
         headerMyCartIsDisplayed();
         checkCartAddedProduct(title);
         checkCheckoutBtn();
@@ -68,8 +70,10 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 4")
     @Description("Добавление в корзину два товара.")
     public void test4() {
-         //checkMostWatched();
-        //addToCart2MostWatchedProducts();
+         checkBlockIsDisplayed("Самые просматриваемые");
+         List<String> titles = addToCart2MostWatchedProducts();
+         clickCartHeaderIconBtn();
+         checkCartAddedProduct(titles.toArray(new String[0]));
     }
 
     /**UI test*/
@@ -79,8 +83,25 @@ public class TestRunner extends TestsConfig {
     public void test5() {
         searchInputIsDisplayed();
         sendTextAndClickSearchBtn();
-        checkListingPageIsOpen();
+        checkPageLinkAdd("/product-list-page");
+        listingPageFilterExists();
         checkListingTitlesContains();
+    }
+
+    /**UI test*/
+    @Test
+    @DisplayName("Тест кейс 6")
+    @Description("Поиск товаров.")
+    public void test6() {
+        searchInputIsDisplayed();
+        sendTextAndClickSearchBtn();
+        checkPageLinkAdd("/product-list-page");
+        listingPageFilterExists();
+        checkListingTitlesContains();
+        checkDropdownSort();
+        selectDropdownSortDescPrice();
+        checkListingTitlesContains();
+        listingPageCheckSortDescPrice();
     }
 
     /**UI test*/
@@ -94,6 +115,38 @@ public class TestRunner extends TestsConfig {
         checkLoginFormPhone();
         checkLoginFormContinueBtn();
         checkLoginFormLegalEntities();
+    }
+
+    /**UI test*/
+    @Test
+    @DisplayName("Тест кейс 8")
+    @Description("Проверка добавления товаров в список сравнения.")
+    public void test8() {
+        searchInputIsDisplayed();
+        sendTextAndClickSearchBtn();
+        checkPageLinkAdd("/product-list-page");
+        listingPageFilterExists();
+        List<String> titles = listingPageAddProductsToCompare();
+        clickCompareBtn();
+        checkPageLinkAdd("/product-comparison");
+        pageH1Is("Сравнение товаров");
+        productCardsTitlesContains(titles);
+    }
+
+    /**UI test*/
+    @Test
+    @DisplayName("Тест кейс 9")
+    @Description("Проверка добавления товара в список избранного.")
+    public void test9() {
+        searchInputIsDisplayed();
+        sendTextAndClickSearchBtn();
+        checkPageLinkAdd("/product-list-page");
+        listingPageFilterExists();
+        List<String> titles = listingPageAddProductsToWish();
+        clickWishBtn();
+        checkPageLinkAdd("/wish-list");
+        pageH1Is("Избранное");
+        productCardsTitlesContains(titles);
     }
 
     /**UI test*/

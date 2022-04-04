@@ -1,6 +1,7 @@
 package pageObject;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -21,14 +22,20 @@ public class ListingPage {
     static {getPage();}
 
     private static final String XPATH_ALL_TITLES = "//mvid-plp-product-title";
+    private static final String XPATH_ALL_MAIN_PRICES = "//*[@class=  'price__main-value'  ]";
     private static final String XPATH_PAGINATION = "//mvid-pagination";
     private static final String XPATH_PRODUCTS_LAYOUT = "//mvid-plp-product-cards-layout";
+    private static final String XPATH_DROPDOWN_SORT_CONTAINER = "//mvid-product-list-controls//*[@class=  'dropdown__options'  ]";
+    private static final String XPATH_DROPDOWN_SORT_OPTION = "/div[contains(text(),  '?' ) ]";
 
     @FindBy(tagName = "mvid-product-list")
     private static SelenideElement productListContainer;
 
     @FindBy(className = "plp__filters")
     private static SelenideElement filterContainer;
+
+    @FindBy(xpath = "//mvid-product-list-controls//*[@class= 'dropdown with-icon' ]")
+    private static SelenideElement dropdownSort;
 
 
     @CanIgnoreReturnValue
@@ -40,12 +47,22 @@ public class ListingPage {
         return productListContainer;
     }
 
-    public static SelenideElement getFilterContainer() {
-        return filterContainer;
+    public static SelenideElement getFilterContainer() {return filterContainer;}
+
+    public static SelenideElement getDropdownSort() {
+        return dropdownSort;
     }
 
     public static ElementsCollection getTitlesCollection() {
         return $$x(XPATH_ALL_TITLES);
+    }
+
+    public static ElementsCollection getPricesCollection() {
+        return $$x(XPATH_ALL_MAIN_PRICES);
+    }
+
+    public static List<ProductCard> getProductCardsList() {
+      return  getTitlesCollection().texts().stream().map(ProductCard::new).collect(Collectors.toList());
     }
 
     public static boolean titlesAllMatch(String text) {
@@ -65,8 +82,26 @@ public class ListingPage {
         return true;
     }
 
+    public static boolean pricesIsDescAllPages() {
+        while (true) {
+            $x(XPATH_PRODUCTS_LAYOUT).shouldBe(Condition.visible);
+            scrollAllProductCards();
+            List <Integer> list = getPricesCollection().texts()
+                    .stream()
+                    .map(el->el.substring(0, el.length()-1))        //убираем символ рубля вконце
+                    .map(el->el.replace(" ", ""))   //убираем пробелы
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+            if (!Common.isDescending(list)) return false;
+            if (pages("current") == pages("size")) break;
+            pages("next");
+        }
+        return true;
+    }
+
     public static void scrollAllProductCards() {
         int time = 1000;
+        $x(XPATH_PRODUCTS_LAYOUT).shouldBe(Condition.visible);
         Common.waitResultBecomeStableWhileDoingSmth(
                 ()-> getTitlesCollection().size(),
                 ()-> {
@@ -75,10 +110,17 @@ public class ListingPage {
                 time);
     }
 
+    public static void selectInDropdownSort(String typeOfSort) {
+        dropdownSort.scrollIntoView(false).hover().shouldBe(Condition.visible).click();
+        Common.shouldBe($x(XPATH_DROPDOWN_SORT_CONTAINER)::isDisplayed, Configuration.timeout);
+        String xpath = XPATH_DROPDOWN_SORT_CONTAINER + XPATH_DROPDOWN_SORT_OPTION.replace("?", typeOfSort);
+        $x(xpath).click();
+    }
+
     private static List<SelenideElement> getPagesList() { return $$x(XPATH_PAGINATION + "//li");}
 
     @CanIgnoreReturnValue
-    private static int pages(String command) {
+    public static int pages(String command) {
         switch (command) {
             case "next": {
                 List<SelenideElement> pagesList = getPagesList();

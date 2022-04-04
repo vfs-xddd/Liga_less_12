@@ -1,11 +1,6 @@
 package pageObject;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-
-import java.util.List;
-
-import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
 public class ProductCard {
@@ -21,7 +16,7 @@ public class ProductCard {
     private final String xpathWishList;
     private final String xpathCompares;
 
-    private ProductCard(String title) {
+    ProductCard(String title) {
       xpathTitle = XPATH_PATTERN_TITLE.replace("?", title);
       titleCard = $x(xpathTitle).getText();
       xpathMainPrice = xpathTitle + XPATH_TITLE_TO_MAIN_PRICE;
@@ -52,6 +47,11 @@ public class ProductCard {
 
     public SelenideElement getComparesBtn() {
         return $x(xpathCompares);
+    }
+
+    @Override
+    public String toString() {
+        return titleCard;
     }
 
 }

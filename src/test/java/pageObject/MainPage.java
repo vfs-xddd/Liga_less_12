@@ -5,6 +5,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.FindBy;
 
+import java.util.List;
 import java.util.Objects;
 
 import static com.codeborne.selenide.Condition.*;
@@ -20,10 +21,11 @@ public class MainPage {
 
     private static final String MAIN_LINK = System.getProperty("main_page_url");
     private static final String XPATH_HEADER_ICON = "//mvid-header-icon[.//*[text() = '";
-    private static final String XPATH_MOST_WATCHED_CONTAINER = "//mvid-simple-product-collection[./h2[text()=  'Самые просматриваемые'  ]]";
+    private static final String XPATH_MOST_WATCHED_CONTAINER = "//mvid-simple-product-collection[./h2[text()=  'Самые просматриваемые'  ]]/parent::*";
     private static final String XPATH_MOST_WATCHED_ITEM_TITLE = "//*[contains(@class,  'title'   )]/a";
-    private static final String XPATH_MOST_WATCHED_ADD_TO_CART = "//*[@title=  'Добавить в корзину'   ]";
+    private static final String XPATH_MOST_WATCHED_ADD_TO_CART = "/following::button[contains(@class,  'actions__cart' )]";
     private static final String XPATH_LOCATION_FORM_CONTAINER = "//mvid-modal//*[contains(@class, 'modal-wrapper__content' )]";
+    private static final String XPATH_H2_PRODUCT_LIST = "//h2[text()= '?' ]/parent::* //mvid-product-cards-group";
 
     @FindBy(className = "app-header-navbar")
     private static SelenideElement navBar;
@@ -48,9 +50,6 @@ public class MainPage {
 
     @FindBy(tagName = "mvid-day-product")
     private static ElementsCollection dayProductCollection;
-
-    @FindBy(tagName = "mvid-bubble")
-    private static SelenideElement cartHeaderIconNum;
 
     @FindBy(tagName = "h2")
     private static ElementsCollection h2;
@@ -97,10 +96,14 @@ public class MainPage {
         return page(MainPage.class);
     }
 
-    @CanIgnoreReturnValue
-    public static void openAndCheck() {
-        Selenide.open(MAIN_LINK);
-        navBar.shouldBe(visible);
+//    @CanIgnoreReturnValue
+//    public static void openAndCheck() {
+//        Selenide.open(MAIN_LINK);
+//        navBar.shouldBe(visible);
+//    }
+
+    public static SelenideElement getNavBar() {
+        return navBar;
     }
 
     public static SelenideElement getElem(String title) {
@@ -113,7 +116,7 @@ public class MainPage {
             case "Товары дня": return dyyProductContainer;
             case "Товары дня.В корзину": return getDayProductInCartBtn();
             case "Товары дня.Описание": return getDayProductTitle();
-            case "Цифра над корзиной": return cartHeaderIconNum;
+            case "Корзина.Цифра": return cart.$(new By.ByTagName("mvid-bubble"));
             case "Самые просматриваемые": return $x(XPATH_MOST_WATCHED_CONTAINER);
             case "Форма входа": return loginFormContainer;
             case "Форма входа.Закрыть": return loginFormCloseBtn;
@@ -126,6 +129,8 @@ public class MainPage {
             case "Форма локации.Описание": return locationFormTitle;
             case "Строка поиска": return searchInput;
             case "Кнопка поиска": return searchIconBtn;
+            case "Сравнение.Цифра": return  compare.$(new By.ByTagName("mvid-bubble"));
+            case "Избранное.Цифра": return  wishlist.$(new By.ByTagName("mvid-bubble"));
             default: return null;
         }
     }
@@ -138,22 +143,36 @@ public class MainPage {
        return locationFormCitiesList.filter(Condition.exactText(city)).first();
     }
 
-    @CanIgnoreReturnValue
-    public static boolean scrollToFindH2(String title) {
-        for (int i=0; i<getH2Collection().size(); i++) {
-            SelenideElement el = getH2Collection().get(i);
-            el.scrollIntoView(false).shouldBe(visible);
-            if (el.getText().equals(title)) {
-                scrollIntoView($x(XPATH_MOST_WATCHED_CONTAINER));
-                return true;}
-        } return false;
+    public static SelenideElement getH2ProductListContainer(String h2Title) {
+        String xpath = XPATH_H2_PRODUCT_LIST.replace("?", h2Title);
+        return $x(xpath);
     }
 
-    public static ElementsCollection getMostWatchedAddToCartBtn() {
-        String xpath = XPATH_MOST_WATCHED_CONTAINER + XPATH_MOST_WATCHED_ADD_TO_CART;
-        return $$x(xpath);
+    public static void scrollToFindH2(String h2Title){
+        String xpathAdd = "/following::h2";
+        String xpath = "//h2";
+       while (true){
+           SelenideElement el = $x(xpath);
+           if (!el.exists()) break;
+           el.scrollIntoView(true).sibling(0).shouldBe(visible);
+           xpath += xpathAdd;
+       }
+       h2.forEach(el->el.scrollIntoView(true));
+       getH2Collection().shouldBe(CollectionCondition.itemWithText(h2Title));
+       getH2Collection().filter(Condition.exactText(h2Title)).first().scrollIntoView(true);
     }
 
+    public static List<String> getMostWatchedTitles() {
+        String xpath = XPATH_MOST_WATCHED_CONTAINER + XPATH_MOST_WATCHED_ITEM_TITLE;
+        return $$x(xpath).texts();
+    }
+
+    public static SelenideElement getMostWatchedAddToCartBtn(String title) {
+        String xpath = XPATH_MOST_WATCHED_CONTAINER
+                + "//*[text()= '?'   ]".replace("?", title)
+                + XPATH_MOST_WATCHED_ADD_TO_CART;
+        return $x(xpath);
+    }
 
     private static SelenideElement getDayProductContainer() {
         return dayProductCollection.filter(Condition.cssValue("z-index", "0")).first();
@@ -165,15 +184,6 @@ public class MainPage {
 
     private static SelenideElement getDayProductTitle() {
         return getDayProductContainer().$(By.xpath(".//*[contains(@class,  'title'  )]/a"));
-    }
-
-    public static boolean isEmptyMostWatchedItemTitles() {
-        String xpath = XPATH_MOST_WATCHED_CONTAINER + XPATH_MOST_WATCHED_ITEM_TITLE;
-        return $$x(xpath).isEmpty();
-    }
-
-    public static void scrollIntoView(SelenideElement el) {
-        Objects.requireNonNull(el).scrollIntoView("{behavior: \"instant\", block: \"center\", inline: \"center\"}");
     }
 
 }

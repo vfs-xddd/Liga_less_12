@@ -3,14 +3,12 @@ package steps;
 import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 import org.junit.jupiter.api.Assertions;
-import pageObject.CartPage;
-import pageObject.ListingPage;
-import pageObject.MainPage;
-import pageObject.ProductCard;
+import pageObject.*;
 
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static com.codeborne.selenide.Selenide.page;
 import static hooks.PageHooks.*;
 
 public class Steps {
@@ -18,7 +16,8 @@ public class Steps {
     @Step("Открываем страницу {page}")
     public static void openPage(String page) {
         if ("mvideo.ru".equals(page)) {
-            MainPage.openAndCheck();
+            openLink(System.getProperty("main_page_url"));
+            shouldBeVisible(MainPage.getNavBar());
         }
     }
 
@@ -41,7 +40,7 @@ public class Steps {
     }
 
     @Step("Нажимаем у товара на кнопку \"В корзину\"")
-    public static void pressDayProductInCartBtn() {
+    public static void clickDayProductInCartBtn() {
         click(MainPage.getElem("Товары дня.В корзину"));
         Assertions.assertEquals("В корзине", getText(MainPage.getElem("Товары дня.В корзину")));
     }
@@ -53,11 +52,11 @@ public class Steps {
     @Step("Кнопка “Корзина” в шапке становится активной и на ней отображается число 1")
     public static void checkCartHeaderIconIfAdded() {
         checkElemActive(MainPage.getElem("Корзина"));
-        Assertions.assertEquals("1", getText(MainPage.getElem("Цифра над корзиной")));
+        Assertions.assertEquals("1", getText(MainPage.getElem("Корзина.Цифра")));
     }
 
     @Step("Нажимаем на кнопку \"Корзина\" - открылась страница /cart ")
-    public static void pressCartHeaderIconBtn() {
+    public static void clickCartHeaderIconBtn() {
         click(MainPage.getElem("Корзина"));
         Assertions.assertEquals("https://www.mvideo.ru/cart", getPageLink());
     }
@@ -67,9 +66,14 @@ public class Steps {
         Assertions.assertTrue(isDisplayed(CartPage.getElem("Моя корзина")));
     }
 
-    @Step("Отображается карточка с наименованием добавленного товара \"{title}\"")
-    public static void checkCartAddedProduct(String title) {
-        Assertions.assertTrue(CartPage.isInCartProductList(title));
+    @Step("Отображаются карточки с наименованием добавленных товаров \n\"{titles}\"")
+    public static void checkCartAddedProduct(String...titles) {
+        if (titles.length == 0) {throw new IllegalArgumentException("Нет данных!.");}
+        boolean result =false;
+        for (String t : titles) {
+            result = CartPage.isInCartProductList(t);
+        }
+        Assertions.assertTrue(result);
     }
 
     @Step("Отображается кнопка \"Перейти к оформлению\"")
@@ -77,7 +81,7 @@ public class Steps {
         Assertions.assertTrue(isDisplayed(CartPage.getElem("Перейти к оформлению")));
     }
 
-    @Step("Отображается текст \"В корзине 1 товар\" и цена совпадает с ценой товара")
+    @Step("Отображается текст \"В корзине 1 товар\".")
     public static void checkCostTitleAndPrice() {
         Assertions.assertEquals("В корзине 1 товар", getText(CartPage.getElem("В корзине товар")));
     }
@@ -89,19 +93,20 @@ public class Steps {
         Assertions.assertEquals(itemPrice, totalPrice);
     }
 
-    @Step("На странице отображается блок \"Самые просматриваемые\"")
-    public static void checkMostWatched() {
-        boolean cond1 = MainPage.scrollToFindH2("Самые просматриваемые");
-        boolean cond2 = !MainPage.isEmptyMostWatchedItemTitles();
-        Assertions.assertTrue(cond1 & cond2, "h2 Самые просматриваемые exist? - "+ cond1 + " , items in container exist?- "+ cond2);
+    @Step("На странице отображается блок {h2Title}.")
+    public static void checkBlockIsDisplayed(String h2Title) {
+        MainPage.scrollToFindH2(h2Title);
+        shouldBeVisible(MainPage.getH2ProductListContainer(h2Title));
     }
 
     @Step("Нажимаем на кнопку “В корзину” у первых двух товаров.")
-    public static void addToCart2MostWatchedProducts() {
-        click(MainPage.getMostWatchedAddToCartBtn().get(0));
-        click(MainPage.getMostWatchedAddToCartBtn().get(1));
-        //.................
-        //TODO
+    public static List<String> addToCart2MostWatchedProducts() {
+        List <String> titles = MainPage.getMostWatchedTitles().stream().limit(2).collect(Collectors.toList());
+        click(MainPage.getMostWatchedAddToCartBtn(titles.get(0)));
+        shouldBeAtrr(MainPage.getMostWatchedAddToCartBtn(titles.get(0)), "title", "Перейти в корзину");
+        click(MainPage.getMostWatchedAddToCartBtn(titles.get(1)));
+        shouldBeAtrr(MainPage.getMostWatchedAddToCartBtn(titles.get(1)), "title", "Перейти в корзину");
+        return titles;
     }
 
 
@@ -119,19 +124,41 @@ public class Steps {
         shouldBeVisible(ListingPage.getProductListContainer());
     }
 
-    @Step("Открывается страница \"/product-list-page\" с параметрами поиска")
-    public static void checkListingPageIsOpen() {
-        String expectedLink = System.getProperty("main_page_url") + "/product-list-page";
+    @Step("Открывается страница {linkPart} с параметрами поиска")
+    public static void checkPageLinkAdd(String linkPart) {
+        String expectedLink = System.getProperty("main_page_url") + linkPart;
         String link = getPageLink();
-        String actualLink = link.substring(0, link.indexOf("?"));
-        boolean cond1 = isDisplayed(ListingPage.getFilterContainer());
-        boolean cond2 = expectedLink.equals(actualLink);
-        Assertions.assertTrue(cond1 & cond2, "FilterContainer isDisplayed?- "+ cond1 + "PageLinkCorrect?- "+cond2);
+        String actualLink;
+        if (link.contains("?")) actualLink = link.substring(0, link.indexOf("?"));
+        else actualLink = link;
+        Assertions.assertEquals(expectedLink, actualLink);
     }
+
+    @Step("На странице присутствуют параметры поиска")
+    public static void listingPageFilterExists() {
+        Assertions.assertTrue(isDisplayed(ListingPage.getFilterContainer()));
+    }
+
 
     @Step("Отображаются только товары содержащие в названии слово \"apple\" в любом регистре")
     public static void checkListingTitlesContains() {
         Assertions.assertTrue(ListingPage.titlesAllMatchAllPages("apple"));
+    }
+
+    @Step("Отображается выпадающий список вариантов сортировки со значением \"Сначала популярные\"")
+    public static void checkDropdownSort() {
+        Assertions.assertEquals("Сначала популярные", getText(ListingPage.getDropdownSort()));
+    }
+
+    @Step("Выбираем в списке значение \"Сначала дороже\"")
+    public static void selectDropdownSortDescPrice() {
+       ListingPage.selectInDropdownSort("Сначала дороже");
+       Assertions.assertEquals("Сначала дороже", getText(ListingPage.getDropdownSort()));
+    }
+
+    @Step("Цена следующего (слева-направо) товара меньше или равна текущего.")
+    public static void listingPageCheckSortDescPrice() {
+        Assertions.assertTrue(ListingPage.pricesIsDescAllPages(), "Массив цен не явл-ся убывающей последовательностью!");
     }
 
     @Step("Нажимаем кнопку Войти.")
@@ -163,6 +190,60 @@ public class Steps {
     @Step("Отображается ссылка \"Для юридических лиц\".")
     public static void checkLoginFormLegalEntities() {
         isDisplayed(MainPage.getElem("Форма входа.Для юридических лиц"));
+    }
+
+    @Step("На первых трех товарах нажимаем кнопку добавления товара в сравнение.")
+    public static List<String> listingPageAddProductsToCompare() {
+        collectionShouldBeVisibleNotEmpty(ListingPage.getTitlesCollection());
+        List <String> titles = new ArrayList<>();
+        ListingPage.getProductCardsList().stream().limit(3).forEach(el-> {
+                    click(el.getComparesBtn());
+                    titles.add(el.title());
+                });
+        shouldBeVisible(MainPage.getElem("Сравнение.Цифра"));
+        Assertions.assertEquals("3", getText(MainPage.getElem("Сравнение.Цифра")));
+        return titles;
+    }
+
+    @Step("На первых трех товарах нажимаем кнопку добавления товара в избранное.")
+    public static List<String> listingPageAddProductsToWish() {
+        collectionShouldBeVisibleNotEmpty(ListingPage.getTitlesCollection());
+        List <String> titles = new ArrayList<>();
+        ListingPage.getProductCardsList().stream().limit(3).forEach(el-> {
+            click(el.getWishListBtn());
+            titles.add(el.title());
+        });
+        shouldBeVisible(MainPage.getElem("Избранное.Цифра"));
+        Assertions.assertEquals("3", getText(MainPage.getElem("Избранное.Цифра")));
+        return titles;
+    }
+
+    @Step("Нажимаем на кнопку \"Сравнение\".")
+    public static void clickCompareBtn() {
+        click(MainPage.getElem("Сравнение"));
+        shouldBeVisible(ComparePage.getH1());
+        Assertions.assertEquals("Сравнение товаров", getH1Text());
+    }
+
+    @Step("Нажимаем на кнопку \"Избранное\".")
+    public static void clickWishBtn() {
+        click(MainPage.getElem("Избранное"));
+        shouldBeVisible(WishPage.getH1());
+        Assertions.assertEquals("Избранное", getH1Text());
+    }
+
+    @Step("Отображается заголовок \"{h1Title}\".")
+    public static void pageH1Is(String h1Title) {
+        Assertions.assertEquals(h1Title, getH1Text());
+    }
+
+    @Step("Отображаются карточки с именами добавленных товаров \n{expectedTitles}.")
+    public static void productCardsTitlesContains(List<String> expectedTitles) {
+        List <String> actualTitles = new ArrayList<>();
+        if (getH1Text().equals("Сравнение товаров")) actualTitles = ComparePage.getProductTitles();
+        else if (getH1Text().equals("Избранное")) actualTitles = WishPage.getProductTitles();
+        else Assertions.fail("Неизвестный тип страницы с товарами!");
+        Assertions.assertTrue(actualTitles.containsAll(expectedTitles) & actualTitles.size()==expectedTitles.size());
     }
 
     @Step("Нажимаем на ссылку с текущим городом.")
