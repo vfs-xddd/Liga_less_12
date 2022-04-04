@@ -21,22 +21,20 @@ import static steps.Steps.*;
 public class TestRunner extends TestsConfig {
 
     @BeforeEach
-    public void before() {
-        openPage("mvideo.ru");
-    }
+    public void before() {openPage("mvideo.ru");}
 
     @AfterEach
     public void after() {
-        WebDriverHandler.clearSession();
-    }
+        //WebDriverHandler.clearSession();
+        }
 
     /**UI test*/
     @Test
     @DisplayName("Тест кейс 1")
     @Description("Проверка шапки главной страницы mvideo.")
     public void test1() {
-        checkStatusProfile();
-        checkCompareWishlistCart();
+        mPcheckStatusProfile();
+        mPcheckCompareWishlistCart();
     }
 
     /**UI test*/
@@ -44,9 +42,9 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 2")
     @Description("Проверка активации кнопки корзины.")
     public void test2() {
-        dayProductIsDisplayed();
-        clickDayProductInCartBtn();
-        checkCartHeaderIconIfAdded();
+        mPdayProductIsDisplayed();
+        mPclickDayProductInCartBtn();
+        mPcheckCartHeaderIconIfAdded();
     }
 
     /**UI test*/
@@ -54,15 +52,15 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 3")
     @Description("Переход в корзину.")
     public void test3() {
-        dayProductIsDisplayed();
-        clickDayProductInCartBtn();
-        String title = getDayProductTitle();
-        clickCartHeaderIconBtn();
-        headerMyCartIsDisplayed();
-        checkCartAddedProduct(title);
-        checkCheckoutBtn();
-        checkCostTitleAndPrice();
-        checkProductPrice();
+        mPdayProductIsDisplayed();
+        mPclickDayProductInCartBtn();
+        String title = mPgetDayProductTitle();
+        mPclickCartHeaderIconBtn();
+        cPheaderMyCartIsDisplayed();
+        xxPcheckCartAddedProduct(title);
+        cPcheckCheckoutBtn();
+        cPcheckCostTitleAndPrice();
+        cPcheckProductPrice();
     }
 
     /**UI test*/
@@ -70,10 +68,10 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 4")
     @Description("Добавление в корзину два товара.")
     public void test4() {
-         checkBlockIsDisplayed("Самые просматриваемые");
-         List<String> titles = addToCart2MostWatchedProducts();
-         clickCartHeaderIconBtn();
-         checkCartAddedProduct(titles.toArray(new String[0]));
+         xxPcheckBlockIsDisplayed("Самые просматриваемые");
+         List<String> titles = mPaddToCart2MostWatchedProducts();
+         mPclickCartHeaderIconBtn();
+         xxPcheckCartAddedProduct(titles.toArray(new String[0]));
     }
 
     /**UI test*/
@@ -81,11 +79,11 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 5")
     @Description("Поиск товаров.")
     public void test5() {
-        searchInputIsDisplayed();
-        sendTextAndClickSearchBtn();
-        checkPageLinkAdd("/product-list-page");
-        listingPageFilterExists();
-        checkListingTitlesContains();
+        lPsearchInputIsDisplayed();
+        mPsendTextAndClickSearchBtn();
+        xxPcheckPageLinkAdd("/product-list-page");
+        lPlistingPageFilterExists();
+        lPcheckListingTitlesContains();
     }
 
     /**UI test*/
@@ -93,15 +91,15 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 6")
     @Description("Поиск товаров.")
     public void test6() {
-        searchInputIsDisplayed();
-        sendTextAndClickSearchBtn();
-        checkPageLinkAdd("/product-list-page");
-        listingPageFilterExists();
-        checkListingTitlesContains();
-        checkDropdownSort();
-        selectDropdownSortDescPrice();
-        checkListingTitlesContains();
-        listingPageCheckSortDescPrice();
+        lPsearchInputIsDisplayed();
+        mPsendTextAndClickSearchBtn();
+        xxPcheckPageLinkAdd("/product-list-page");
+        lPlistingPageFilterExists();
+        lPcheckListingTitlesContains();
+        lPcheckDropdownSort();
+        lPselectDropdownSortDescPrice();
+        lPcheckListingTitlesContains();
+        lPSortDescPrice();
     }
 
     /**UI test*/
@@ -109,12 +107,12 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 7")
     @Description("Проверка модального окна авторизации клиента.")
     public void test7() {
-        clickLoginBtn();
-        checkLoginFormCloseBtn();
-        checkLoginFormTitle();
-        checkLoginFormPhone();
-        checkLoginFormContinueBtn();
-        checkLoginFormLegalEntities();
+        mPclickLoginBtn();
+        mPcheckLoginFormCloseBtn();
+        mPcheckLoginFormTitle();
+        mPcheckLoginFormPhone();
+        mPcheckLoginFormContinueBtn();
+        mPcheckLoginFormLegalEntities();
     }
 
     /**UI test*/
@@ -122,15 +120,15 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 8")
     @Description("Проверка добавления товаров в список сравнения.")
     public void test8() {
-        searchInputIsDisplayed();
-        sendTextAndClickSearchBtn();
-        checkPageLinkAdd("/product-list-page");
-        listingPageFilterExists();
-        List<String> titles = listingPageAddProductsToCompare();
-        clickCompareBtn();
-        checkPageLinkAdd("/product-comparison");
-        pageH1Is("Сравнение товаров");
-        productCardsTitlesContains(titles);
+        lPsearchInputIsDisplayed();
+        mPsendTextAndClickSearchBtn();
+        xxPcheckPageLinkAdd("/product-list-page");
+        lPlistingPageFilterExists();
+        List<String> titles = lPAddProductsToCompare();
+        mPclickCompareBtn();
+        xxPcheckPageLinkAdd("/product-comparison");
+        xxPpageH1Is("Сравнение товаров");
+        xxPproductCardsTitlesContains(titles);
     }
 
     /**UI test*/
@@ -138,15 +136,15 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 9")
     @Description("Проверка добавления товара в список избранного.")
     public void test9() {
-        searchInputIsDisplayed();
-        sendTextAndClickSearchBtn();
-        checkPageLinkAdd("/product-list-page");
-        listingPageFilterExists();
-        List<String> titles = listingPageAddProductsToWish();
-        clickWishBtn();
-        checkPageLinkAdd("/wish-list");
-        pageH1Is("Избранное");
-        productCardsTitlesContains(titles);
+        lPsearchInputIsDisplayed();
+        mPsendTextAndClickSearchBtn();
+        xxPcheckPageLinkAdd("/product-list-page");
+        lPlistingPageFilterExists();
+        List<String> titles = lPAddProductsToWish();
+        mPclickWishBtn();
+        xxPcheckPageLinkAdd("/wish-list");
+        xxPpageH1Is("Избранное");
+        xxPproductCardsTitlesContains(titles);
     }
 
     /**UI test*/
@@ -154,10 +152,10 @@ public class TestRunner extends TestsConfig {
     @DisplayName("Тест кейс 10")
     @Description("Проверка изменения города.")
     public void test10() {
-        clickLocation();
-        checkLocationFormTitle();
-        clickTargetCity();
-        locationFormIsNotDisplayed();
-        checkCurrentLocation();
+        mPclickLocation();
+        mPcheckLocationFormTitle();
+        mPclickTargetCity();
+        mPlocationFormIsNotDisplayed();
+        mPcheckCurrentLocation();
     }
 }

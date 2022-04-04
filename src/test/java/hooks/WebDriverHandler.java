@@ -21,7 +21,7 @@ public class WebDriverHandler {
         ops.addArguments("--disable-notifications");
         WebDriver driver = new ChromeDriver(ops);
         driver.manage().window().maximize();
-        Configuration.timeout = 5000;
+        Configuration.timeout = 8000;
         Configuration.holdBrowserOpen = true;
 
         return driver;

@@ -19,7 +19,6 @@ public class MainPage {
 
     static {getPage();}
 
-    private static final String MAIN_LINK = System.getProperty("main_page_url");
     private static final String XPATH_HEADER_ICON = "//mvid-header-icon[.//*[text() = '";
     private static final String XPATH_MOST_WATCHED_CONTAINER = "//mvid-simple-product-collection[./h2[text()=  'Самые просматриваемые'  ]]/parent::*";
     private static final String XPATH_MOST_WATCHED_ITEM_TITLE = "//*[contains(@class,  'title'   )]/a";
@@ -96,12 +95,6 @@ public class MainPage {
         return page(MainPage.class);
     }
 
-//    @CanIgnoreReturnValue
-//    public static void openAndCheck() {
-//        Selenide.open(MAIN_LINK);
-//        navBar.shouldBe(visible);
-//    }
-
     public static SelenideElement getNavBar() {
         return navBar;
     }
@@ -109,14 +102,16 @@ public class MainPage {
     public static SelenideElement getElem(String title) {
         switch (title) {
             case "Корзина": return cart;
+            case "Корзина.Цифра": return cart.$(new By.ByTagName("mvid-bubble"));
             case "Избранное": return wishlist;
+            case "Избранное.Цифра": return  wishlist.$(new By.ByTagName("mvid-bubble"));
             case "Сравнение": return compare;
+            case "Сравнение.Цифра": return  compare.$(new By.ByTagName("mvid-bubble"));
             case "Войти": return profile;
             case "Статус заказа": return statusOrder;
             case "Товары дня": return dyyProductContainer;
             case "Товары дня.В корзину": return getDayProductInCartBtn();
             case "Товары дня.Описание": return getDayProductTitle();
-            case "Корзина.Цифра": return cart.$(new By.ByTagName("mvid-bubble"));
             case "Самые просматриваемые": return $x(XPATH_MOST_WATCHED_CONTAINER);
             case "Форма входа": return loginFormContainer;
             case "Форма входа.Закрыть": return loginFormCloseBtn;
@@ -129,8 +124,6 @@ public class MainPage {
             case "Форма локации.Описание": return locationFormTitle;
             case "Строка поиска": return searchInput;
             case "Кнопка поиска": return searchIconBtn;
-            case "Сравнение.Цифра": return  compare.$(new By.ByTagName("mvid-bubble"));
-            case "Избранное.Цифра": return  wishlist.$(new By.ByTagName("mvid-bubble"));
             default: return null;
         }
     }
@@ -148,6 +141,8 @@ public class MainPage {
         return $x(xpath);
     }
 
+    /**Ищет заданный H2 заголовок, прокручивая H2 и переходя к след ниже по странице.
+     * Проверяет, что заголовок найден*/
     public static void scrollToFindH2(String h2Title){
         String xpathAdd = "/following::h2";
         String xpath = "//h2";

@@ -12,7 +12,7 @@ public class CartPage {
 
     static {getPage();}
 
-    @FindBy(xpath = "//*[@class=  'main-holder' ] //*[text()=  'Моя корзина' ]")
+    @FindBy(xpath = "//*[@class=  'main-holder' ] //*[contains(@class,  'c-header-checkout__logo'  )]")
     private static SelenideElement myCart;
 
     @FindBy(xpath = "//*[@value=  'Перейти к оформлению'  ]")
@@ -23,6 +23,10 @@ public class CartPage {
 
     @FindBy(className = "c-cost-line__text")
     private static SelenideElement totalActualPrice;
+
+    @FindBy(xpath = "//*[contains(text(), 'Ваша корзина пока пуста' )]")
+    private static SelenideElement emptyCart;
+
 
     private static final String XPATH_ITEM_CONTAINER = "//*[contains(@class,  'c-cart-item__wrapper'  )]";
     private static final String XPATH_ITEM_TITLE = "//*[contains(@class,  'c-cart-item__title'  )]";
@@ -41,6 +45,10 @@ public class CartPage {
             case "Общая актуальная цена": return totalActualPrice;
             default: return null;
         }
+    }
+
+    public static boolean isEmptyCart() {
+        return emptyCart.isDisplayed();
     }
 
     public static String getFirstItemActualPrice() {

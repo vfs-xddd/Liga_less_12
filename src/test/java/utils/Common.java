@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**Общие доп методы
+ *@author Maksim_Kachaev*/
 public class Common {
 
     /**Повторяет что-то, пока результат указанного метода не перестанет меняться все указанное время
@@ -24,6 +26,10 @@ public class Common {
         }
     }
 
+    /**Ожидает условие станет истинным за указанное временя
+     *
+     * @param condition условие на проверку
+     * @param time время ожидания*/
     public static void shouldBe(Supplier<Boolean> condition, long time) {
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startTime < time) {
@@ -32,6 +38,10 @@ public class Common {
         Assertions.fail("timeout: условие не вернуло true за все время.");
     }
 
+    /**Ожидает условие станет ложным за указанное временя
+     *
+     * @param condition условие на проверку
+     * @param time время ожидания*/
     public static void shouldNotBe(Supplier<Boolean> condition, long time) {
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startTime < time) {
@@ -40,6 +50,7 @@ public class Common {
         Assertions.fail("timeout: условие не вернуло true за все время.");
     }
 
+    /**Проверяет, что переданный список чисел убывающая последовательность.*/
     public static boolean isDescending(List<Integer> nums) {
         for (int i = 1; i < nums.size(); i++)
         {

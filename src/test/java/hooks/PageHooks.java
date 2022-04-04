@@ -1,14 +1,19 @@
 package hooks;
 
 import com.codeborne.selenide.*;
+import utils.Common;
 
 import java.util.List;
 import java.util.Objects;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
+/**Класс-посредник между Steps и PageObjects.
+ *
+ * @author Maksim_Kachaev*/
 public class PageHooks {
 
     public static void openLink(String link) {
@@ -16,7 +21,7 @@ public class PageHooks {
     }
 
     public static void shouldBeVisible(SelenideElement el) {
-        Objects.requireNonNull(el).shouldBe(visible);
+        Objects.requireNonNull(el).scrollIntoView(true).shouldBe(visible);
     }
 
     public static void shouldNotBeVisible(SelenideElement el) {
@@ -27,9 +32,17 @@ public class PageHooks {
         Objects.requireNonNull(el).shouldBe(Condition.attribute(atr, value));
     }
 
+    public static void shouldBeExactText(SelenideElement el, String text) {
+        Objects.requireNonNull(el).shouldBe(Condition.exactText(text));
+    }
+
     public static void collectionShouldBeVisibleNotEmpty(ElementsCollection elems) {
         elems.shouldBe(CollectionCondition.sizeGreaterThan(0));
         elems.forEach(el->el.shouldBe(visible));
+    }
+
+    public static void reloadPage() {
+        Selenide.refresh();
     }
 
     public static void checkElemActive (SelenideElement el) {
@@ -68,10 +81,12 @@ public class PageHooks {
         return WebDriverRunner.driver().url();
     }
 
+    /**Возвращает текст H1 заголовка страницы*/
     public static String getH1Text() {
         return getTextNode($x("//h1"));
     }
 
+    /**Возвращает текст конкретного веб элемента без детей*/
     private static String getTextNode(SelenideElement el)
     {
         String text = el.getText().trim();
@@ -81,6 +96,16 @@ public class PageHooks {
             text = text.replaceFirst(child.getText(), "").trim();
         }
         return text;
+    }
+
+    public static void scrollProductCardsWishOrComparePages() {
+        int time = 1000;
+        Common.waitResultBecomeStableWhileDoingSmth(
+                ()-> $$x("//h3").size(),
+                ()-> $$x("//h3").last().scrollIntoView(true),
+                time
+        );
+        $x("//h1").scrollIntoView(false);
     }
 
     public static void scrollIntoView(SelenideElement el) {

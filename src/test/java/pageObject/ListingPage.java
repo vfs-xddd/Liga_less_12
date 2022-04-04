@@ -65,12 +65,14 @@ public class ListingPage {
       return  getTitlesCollection().texts().stream().map(ProductCard::new).collect(Collectors.toList());
     }
 
+    /**Проверяет на текущей странице листинга, что все названия карточек товаров содержат переданный текст*/
     public static boolean titlesAllMatch(String text) {
        return getTitlesCollection().texts().stream()
                 .allMatch(el->el.toLowerCase(Locale.ROOT)
                         .contains(text));
     }
 
+    /**Проверяет на всех страницах листинга, что все названия карточек товаров содержат переданный текст*/
     public static boolean titlesAllMatchAllPages(String text) {
         while (true) {
             $x(XPATH_PRODUCTS_LAYOUT).shouldBe(Condition.visible);
@@ -82,6 +84,7 @@ public class ListingPage {
         return true;
     }
 
+    /**Проверяет на всех страницах листинга, что все карточки товаров отсортированы по убыванию основной цены*/
     public static boolean pricesIsDescAllPages() {
         while (true) {
             $x(XPATH_PRODUCTS_LAYOUT).shouldBe(Condition.visible);
@@ -99,6 +102,8 @@ public class ListingPage {
         return true;
     }
 
+    /**Скроллит все карточки товаров от последней(в ряду/блоке) к последней(в ряду/блоке)
+     * пока общее кол-во карточек не перестанет меняться.*/
     public static void scrollAllProductCards() {
         int time = 1000;
         $x(XPATH_PRODUCTS_LAYOUT).shouldBe(Condition.visible);
@@ -119,6 +124,10 @@ public class ListingPage {
 
     private static List<SelenideElement> getPagesList() { return $$x(XPATH_PAGINATION + "//li");}
 
+    /**Пагинация. Аргументами осуществляется управление.
+     *
+     * @param command next, previous, last, current, size
+     * @return результат команды(если есть)*/
     @CanIgnoreReturnValue
     public static int pages(String command) {
         switch (command) {
